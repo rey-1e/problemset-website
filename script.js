@@ -1,11 +1,9 @@
-// Application State
 let companiesList = [];
 let loadedQuestions = [];
 let currentFilter = 'All';
 let currentSortKey = 'id';
 let currentSortDir = 'asc';
 
-// Element Cache
 const searchInput = document.getElementById('search-input');
 const suggestionsDiv = document.getElementById('suggestions');
 const blankState = document.getElementById('blank-state');
@@ -16,7 +14,7 @@ const tableBody = document.getElementById('table-body');
 const tableWrapper = document.getElementById('table-wrapper');
 const loader = document.getElementById('loader');
 
-// Fetch the Master Company List
+// Fetch the Master list
 fetch('data/companies.json')
     .then(res => res.json())
     .then(data => {
@@ -24,7 +22,6 @@ fetch('data/companies.json')
     })
     .catch(err => console.error("Could not fetch the company list", err));
 
-// Input event listener for dropdown suggestions
 searchInput.addEventListener('input', (e) => {
     const query = e.target.value.trim().toLowerCase();
     suggestionsDiv.innerHTML = '';
@@ -34,7 +31,7 @@ searchInput.addEventListener('input', (e) => {
         return;
     }
 
-    const filtered = companiesList.filter(c => c.toLowerCase().includes(query)).slice(0, 10);
+    const filtered = companiesList.filter(c => c.toLowerCase().includes(query)).slice(0, 8);
 
     if (filtered.length > 0) {
         filtered.forEach(company => {
@@ -55,14 +52,12 @@ searchInput.addEventListener('input', (e) => {
     }
 });
 
-// Close suggestions when user clicks outside
 document.addEventListener('click', (e) => {
     if (!searchInput.contains(e.target) && !suggestionsDiv.contains(e.target)) {
         suggestionsDiv.classList.add('hidden');
     }
 });
 
-// Load the details for the targeted company
 function selectCompany(companyName) {
     searchInput.value = '';
     suggestionsDiv.classList.add('hidden');
@@ -87,7 +82,6 @@ function selectCompany(companyName) {
         });
 }
 
-// Handler for Filter Pills
 document.querySelectorAll('.filter-pill').forEach(pill => {
     pill.addEventListener('click', (e) => {
         document.querySelector('.filter-pill.active').classList.remove('active');
@@ -97,7 +91,6 @@ document.querySelectorAll('.filter-pill').forEach(pill => {
     });
 });
 
-// Handler for Sorting Headers
 document.querySelectorAll('th.sortable').forEach(th => {
     th.addEventListener('click', () => {
         const sortKey = th.getAttribute('data-sort');
@@ -124,26 +117,22 @@ function updateSortIndicators() {
     });
 }
 
-// Compute the ordering value for Difficulty categories
 function getDiffWeight(difficulty) {
     const diff = difficulty.toLowerCase();
-    if (diff === 'easy') return 1;
-    if (diff === 'medium') return 2;
-    if (diff === 'hard') return 3;
+    if (diff.includes('easy')) return 1;
+    if (diff.includes('medium') || diff.includes('med')) return 2;
+    if (diff.includes('hard')) return 3;
     return 0;
 }
 
-// Sort, Filter, and Output Questions inside the table
 function processAndRender() {
-    // 1. Filter
     let displayList = loadedQuestions.filter(q => {
         if (currentFilter === 'All') return true;
-        return q.difficulty.toLowerCase() === currentFilter.toLowerCase();
+        return q.difficulty.toLowerCase().includes(currentFilter.toLowerCase());
     });
 
     questionCount.textContent = `${displayList.length} question${displayList.length === 1 ? '' : 's'}`;
 
-    // 2. Sort
     displayList.sort((a, b) => {
         if (currentSortKey === 'difficulty') {
             const weightA = getDiffWeight(a.difficulty);
@@ -165,7 +154,6 @@ function processAndRender() {
         return 0;
     });
 
-    // 3. Render Table rows
     tableBody.innerHTML = '';
     if (displayList.length === 0) {
         tableBody.innerHTML = `<tr><td colspan="4" style="text-align: center; color: var(--text-muted); padding: 40px;">No questions matching this filter.</td></tr>`;
@@ -176,6 +164,17 @@ function processAndRender() {
         const tr = document.createElement('tr');
         const diffLower = q.difficulty.toLowerCase();
         
+        let badgeClass = 'badge-medium';
+        let displayDiff = 'Medium';
+        
+        if (diffLower.includes('easy')) {
+            badgeClass = 'badge-easy';
+            displayDiff = 'Easy';
+        } else if (diffLower.includes('hard')) {
+            badgeClass = 'badge-hard';
+            displayDiff = 'Hard';
+        }
+
         tr.innerHTML = `
             <td class="col-id">${q.id}</td>
             <td>
@@ -184,11 +183,10 @@ function processAndRender() {
                 </a>
             </td>
             <td>
-                <span class="badge badge-${diffLower}">${q.difficulty}</span>
+                <span class="badge ${badgeClass}">${displayDiff}</span>
             </td>
             <td style="color: var(--text-muted); font-size: 13px;">${q.acceptance}</td>
         `;
         tableBody.appendChild(tr);
     });
 }
-
