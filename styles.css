@@ -52,16 +52,6 @@ body {
     gap: 12px;
 }
 
-.brand-logo {
-    background-color: var(--accent-color);
-    color: #000000;
-    font-weight: 700;
-    font-size: 13px;
-    padding: 6px 8px;
-    border-radius: 6px;
-    letter-spacing: 1px;
-}
-
 .brand-text {
     color: var(--text-main);
     font-size: 18px;
@@ -404,4 +394,9 @@ body {
 
 .hidden {
     display: none !important;
+}
+
+.sprint-icon {
+    text-align: center;
+    border: 1px solid black;
 }
